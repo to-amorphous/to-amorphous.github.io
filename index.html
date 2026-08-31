@@ -413,6 +413,16 @@
     transition:color .3s ease, border-color .3s ease;
   }
   .statement__link:hover{ color:var(--bg-warm); border-color:rgba(247,247,245,.75); }
+  .statement__list{
+    list-style:none; margin:28px auto 32px; padding:0; max-width:46ch;
+  }
+  .statement__list li{
+    padding:15px 0; border-top:1px solid rgba(247,247,245,.15);
+    font-family:var(--font-sans-cn); font-size:14px; line-height:1.75;
+  }
+  .statement__list li:first-child{ border-top:none; padding-top:0; }
+  .statement__list-label{ font-weight:600; color:var(--bg-warm); }
+  .statement__list-desc{ color:rgba(247,247,245,.62); }
 
   /* ---------- closing / final cta ---------- */
   .closing{ padding:110px 24px 80px; text-align:center; }
@@ -1121,8 +1131,13 @@
     </div>
 
     <div class="statement__block">
-      <p class="statement__main">包裝也是同一件事——不用一次性紙盒，能重複使用的，我們都盡量重複使用。</p>
-      <p class="statement__sub">牛皮夾層紙箱、回收泡棉、再生防撞蜂巢紙，貼紙也盡量好撕，方便回收；也歡迎你把包裝留下來繼續用。與這片土地上的生命，一起好好生活。</p>
+      <p class="statement__main">重視環保，我們在包裝及運輸上努力做到</p>
+      <ul class="statement__list">
+        <li><span class="statement__list-label">減少資源浪費：</span><span class="statement__list-desc">不用一次性紙盒，使用能 100% 回收的容器</span></li>
+        <li><span class="statement__list-label">防撞墊材：</span><span class="statement__list-desc">使用再生防撞蜂巢紙或回收泡綿、氣泡紙</span></li>
+        <li><span class="statement__list-label">運輸材好回收：</span><span class="statement__list-desc">盡量不用膠帶，使用牛皮夾層紙箱</span></li>
+      </ul>
+      <p class="statement__sub">也歡迎你把包裝留下來繼續用。與這片土地上的生命，一起好好生活。</p>
     </div>
   </div>
 </section>
