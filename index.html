@@ -403,6 +403,16 @@
     font-family:var(--font-sans-cn); font-weight:300; font-size:14px; color:rgba(247,247,245,.62);
     margin:0;
   }
+  .statement__block + .statement__block{
+    margin-top:52px; padding-top:52px; border-top:1px solid rgba(247,247,245,.15);
+  }
+  .statement__link{
+    display:inline-block; margin-top:18px; text-decoration:none;
+    font-family:var(--font-sans-cn); font-size:12.5px; letter-spacing:.02em;
+    color:rgba(247,247,245,.75); border-bottom:1px solid rgba(247,247,245,.35); padding-bottom:2px;
+    transition:color .3s ease, border-color .3s ease;
+  }
+  .statement__link:hover{ color:var(--bg-warm); border-color:rgba(247,247,245,.75); }
 
   /* ---------- closing / final cta ---------- */
   .closing{ padding:110px 24px 80px; text-align:center; }
@@ -1103,8 +1113,17 @@
 <section class="statement">
   <div class="statement__inner reveal">
     <p class="statement__eyebrow">Beyond Skincare</p>
-    <p class="statement__main">我們把 10% 的毛利，捐給同志諮詢熱線、芒草心、懷生動物協會、報導者。</p>
-    <p class="statement__sub">不是為了行銷，就只是覺得，這是人也該做的事，跟人有關的事情。</p>
+
+    <div class="statement__block">
+      <p class="statement__main">我們把 10% 的毛利，捐給同志諮詢熱線、芒草心、懷生動物協會、報導者。</p>
+      <p class="statement__sub">不是為了行銷，就只是覺得，這是人也該做的事，跟人有關的事情。</p>
+      <a class="statement__link" href="https://www.instagram.com/stories/highlights/17890795142578590/" target="_blank" rel="noopener">查看捐贈紀錄 →</a>
+    </div>
+
+    <div class="statement__block">
+      <p class="statement__main">包裝也是同一件事——不用一次性紙盒，能重複使用的，我們都盡量重複使用。</p>
+      <p class="statement__sub">牛皮夾層紙箱、回收泡棉、再生防撞蜂巢紙，貼紙也盡量好撕，方便回收；也歡迎你把包裝留下來繼續用。與這片土地上的生命，一起好好生活。</p>
+    </div>
   </div>
 </section>
 
