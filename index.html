@@ -329,7 +329,8 @@
   .flow-path{ padding:28px 0 0; border-top:1px solid var(--ink-12); text-align:center; }
   .flow-path:first-child{ padding-top:0; border-top:none; }
   .flow-path__label{ font-family:var(--font-serif-cn); font-weight:500; font-size:16px; margin:0 0 22px; }
-  .routine-path{ position:relative; margin:0; display:flex; flex-direction:column; align-items:center; }
+  .flow-path__body{ display:inline-flex; flex-direction:column; align-items:flex-start; text-align:left; }
+  .routine-path{ position:relative; margin:0; display:flex; flex-direction:column; align-items:flex-start; }
   .routine-path__item{ margin:0; }
   .routine-path__arrow{
     width:78px; margin:2px 0; text-align:center; line-height:1;
@@ -379,6 +380,7 @@
   .combo__item:first-child{ border-top:none; padding-top:0; }
   .combo__item--diff{ display:flex; flex-direction:column; align-items:flex-start; gap:7px; }
   .combo-single .flow-start{ margin-top:22px; }
+  .flow-extra .flow-start{ border:none; padding:0; }
 
   @media (min-width:720px){
     .combo{ grid-template-columns:1fr 1fr; gap:0 48px; }
@@ -1033,6 +1035,7 @@
     <div class="flow-paths">
       <div class="flow-path">
         <p class="flow-path__label">乾肌</p>
+        <div class="flow-path__body">
         <ul class="routine-path">
           <li class="routine-path__item">
             <a class="flow-node" href="#step-03">
@@ -1058,9 +1061,11 @@
         <div class="flow-cta">
           <a class="cta-btn" href="https://www.to-amorphous.com/toamorphousskincare/index.php?action=product_detail&amp;prod_no=P0082000031882" target="_blank" rel="noopener">查看乾。肌推組合 <span class="cta-btn__arrow">→</span></a>
         </div>
+        </div>
       </div>
       <div class="flow-path">
         <p class="flow-path__label">油肌</p>
+        <div class="flow-path__body">
         <ul class="routine-path">
           <li class="routine-path__item">
             <a class="flow-node" href="#step-03">
@@ -1078,6 +1083,7 @@
         </ul>
         <div class="flow-cta">
           <a class="cta-btn" href="https://www.to-amorphous.com/toamorphousskincare/index.php?action=product_detail&amp;prod_no=P0082000031881" target="_blank" rel="noopener">查看油。肌推組合 <span class="cta-btn__arrow">→</span></a>
+        </div>
         </div>
       </div>
     </div>
