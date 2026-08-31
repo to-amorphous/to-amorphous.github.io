@@ -131,15 +131,19 @@
   }
   .stepnav__list{
     display:flex; gap:4px; overflow-x:auto; padding:10px 16px; -webkit-overflow-scrolling:touch;
-    scrollbar-width:none;
+    scrollbar-width:none; max-width:var(--maxw); margin:0 auto;
   }
   .stepnav__list::-webkit-scrollbar{ display:none; }
   .stepnav__link{
     flex:0 0 auto; text-decoration:none; font-family:var(--font-en); font-size:11px; letter-spacing:.08em;
-    color:var(--ink-40); padding:8px 12px; border-radius:999px; white-space:nowrap;
+    color:var(--ink-55); padding:8px 12px; border-radius:999px; white-space:nowrap;
     transition:color .35s ease, background-color .35s ease;
   }
   .stepnav__link.active{ color:var(--ink); background:var(--ink-06); }
+
+  @media (min-width:720px){
+    .stepnav__list{ justify-content:center; }
+  }
 
   /* ---------- product carousel ---------- */
   .product-carousel{ position:relative; overflow:hidden; }
@@ -1148,6 +1152,9 @@
   if(track && slides.length){
     var total = slides.length;
     var index = 0;
+    var AUTOPLAY_MS = 6000;
+    var autoplayTimer = null;
+    var autoplayEnabled = true; // turns off for good once the visitor takes control
 
     function render(){
       track.style.transform = 'translateX(-' + (index * (100 / total)) + '%)';
@@ -1155,25 +1162,39 @@
       navLinks.forEach(function(link){
         link.classList.toggle('active', link.dataset.step === slides[index].id);
       });
-      if(prevBtn) prevBtn.disabled = index === 0;
-      if(nextBtn) nextBtn.disabled = index === total - 1;
     }
 
     function goTo(i){
-      index = Math.max(0, Math.min(total - 1, i));
+      index = ((i % total) + total) % total; // wraps both directions
       render();
+    }
+
+    function stopAutoplay(){
+      if(autoplayTimer){ clearInterval(autoplayTimer); autoplayTimer = null; }
+    }
+
+    function startAutoplay(){
+      stopAutoplay();
+      if(!autoplayEnabled) return;
+      autoplayTimer = setInterval(function(){ goTo(index + 1); }, AUTOPLAY_MS);
+    }
+
+    function stopAutoplayForGood(){
+      autoplayEnabled = false;
+      stopAutoplay();
     }
 
     navLinks.forEach(function(link){
       link.addEventListener('click', function(e){
         e.preventDefault();
+        stopAutoplayForGood();
         var i = slides.findIndex(function(s){ return s.id === link.dataset.step; });
         if(i > -1) goTo(i);
       });
     });
 
-    if(prevBtn) prevBtn.addEventListener('click', function(){ goTo(index - 1); });
-    if(nextBtn) nextBtn.addEventListener('click', function(){ goTo(index + 1); });
+    if(prevBtn) prevBtn.addEventListener('click', function(){ stopAutoplayForGood(); goTo(index - 1); });
+    if(nextBtn) nextBtn.addEventListener('click', function(){ stopAutoplayForGood(); goTo(index + 1); });
 
     // any other on-page link pointing at a step (routine flow, combo-single, etc.)
     document.addEventListener('click', function(e){
@@ -1183,11 +1204,12 @@
       var i = slides.findIndex(function(s){ return s.id === id; });
       if(i === -1) return;
       e.preventDefault();
+      stopAutoplayForGood();
       goTo(i);
       carousel.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
 
-    // swipe / drag
+    // swipe / drag — works for touch and mouse alike via pointer events
     var dragStartX = null, dragStartY = null, dragging = false;
     track.addEventListener('pointerdown', function(e){
       dragStartX = e.clientX; dragStartY = e.clientY; dragging = true;
@@ -1197,6 +1219,7 @@
       dragging = false;
       var dx = e.clientX - dragStartX, dy = e.clientY - dragStartY;
       if(Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy)){
+        stopAutoplayForGood();
         goTo(index + (dx < 0 ? 1 : -1));
       }
     });
@@ -1205,12 +1228,25 @@
     // keyboard
     carousel.setAttribute('tabindex', '0');
     carousel.addEventListener('keydown', function(e){
-      if(e.key === 'ArrowRight') goTo(index + 1);
-      if(e.key === 'ArrowLeft') goTo(index - 1);
+      if(e.key === 'ArrowRight'){ stopAutoplayForGood(); goTo(index + 1); }
+      if(e.key === 'ArrowLeft'){ stopAutoplayForGood(); goTo(index - 1); }
+    });
+
+    // pause (not permanently) while the carousel is scrolled off-screen, or the
+    // browser tab is backgrounded — resumes without skipping ahead
+    if('IntersectionObserver' in window){
+      var visObserver = new IntersectionObserver(function(entries){
+        if(entries[0].isIntersecting){ startAutoplay(); } else { stopAutoplay(); }
+      }, { threshold: 0.4 });
+      visObserver.observe(carousel);
+    }
+    document.addEventListener('visibilitychange', function(){
+      if(document.hidden){ stopAutoplay(); } else { startAutoplay(); }
     });
 
     window.addEventListener('resize', render);
     render();
+    startAutoplay();
   }
 })();
 </script>
