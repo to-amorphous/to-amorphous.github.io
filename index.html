@@ -253,6 +253,22 @@
     font-family:var(--font-sans-cn); font-weight:300; font-size:13px; line-height:1.85; color:var(--ink-55); margin:0;
   }
 
+  details.usage{ margin:0 0 18px; max-width:56ch; }
+  details.usage summary{
+    cursor:pointer; list-style:none; font-family:var(--font-en); font-size:12px; letter-spacing:.1em;
+    color:var(--ink-55); display:inline-flex; align-items:center; gap:8px; padding:4px 0;
+    -webkit-tap-highlight-color:transparent;
+  }
+  details.usage summary::-webkit-details-marker{ display:none; }
+  details.usage summary::before{
+    content:'+'; display:inline-block; width:14px; text-align:center;
+  }
+  details.usage[open] summary::before{ content:'–'; }
+  details.usage .usage__body{
+    font-family:var(--font-sans-cn); font-weight:300; font-size:13.5px; line-height:1.9; color:var(--ink-55);
+    padding:10px 0 0 22px; margin:0;
+  }
+
   .cta-btn{
     display:inline-flex; align-items:center; gap:10px; text-decoration:none;
     border:1px solid var(--ink); color:var(--ink); font-family:var(--font-en); font-size:13px;
@@ -535,6 +551,10 @@
       </div>
       <p class="product__desc">油劑卸妝，卸除臉部彩妝與防曬。一般膚質皆可使用。</p>
       <span class="tag">一般膚質</span>
+      <details class="usage">
+        <summary>怎麼用</summary>
+        <p class="usage__body">按壓1–2下，均勻塗抹於需卸除防水彩妝或防曬的臉部，輕柔按摩溶解彩妝後以清水洗淨。卸除身體防曬請增加用量。</p>
+      </details>
       <div>
         <a class="cta-btn" href="https://www.to-amorphous.com/toamorphousskincare/index.php?action=product_detail&amp;prod_no=P0082000031571" target="_blank" rel="noopener">前往商城 <span class="cta-btn__arrow">→</span></a>
       </div>
@@ -564,6 +584,10 @@
       </div>
       <p class="product__desc">胺基酸系洗顏，慕斯質地，訴求溫和潔顏。一般膚質，包含較敏感的肌膚也適合日常使用。</p>
       <span class="tag">一般膚質・含敏感肌適用</span>
+      <details class="usage">
+        <summary>怎麼用</summary>
+        <p class="usage__body">卸妝後洗臉時使用，按壓1–2次，均勻清洗全臉，再以清水洗淨即可。</p>
+      </details>
       <div>
         <a class="cta-btn" href="https://www.to-amorphous.com/toamorphousskincare/index.php?action=product_detail&amp;prod_no=P0082000031573" target="_blank" rel="noopener">前往商城 <span class="cta-btn__arrow">→</span></a>
       </div>
@@ -591,6 +615,10 @@
       </div>
       <p class="product__desc">基礎抗老、亮白的全方位精華液，日常保養基礎步驟，一般膚質皆適合。</p>
       <span class="tag">一般膚質・日常基礎保養</span>
+      <details class="usage">
+        <summary>怎麼用</summary>
+        <p class="usage__body">每天早晚洗臉後使用，按壓到底吸取一管即可；可搭配1–2滴「好好加強胜肽安瓿」加強效果。</p>
+      </details>
 
       <details class="ingredients">
         <summary>成分細節</summary>
@@ -684,6 +712,10 @@
       </div>
       <p class="product__desc">酸類去角質產品，適合想處理粗糙、暗沉、代謝變慢肌膚的人。</p>
       <span class="tag">進階保養・請先建立耐受</span>
+      <details class="usage">
+        <summary>怎麼用</summary>
+        <p class="usage__body">晚上洗臉後使用。初次使用建議一週一次，肌膚適應後可增加到一週兩次（約3–4天一次），單獨使用不需搭配其他精華或乳液。</p>
+      </details>
 
       <details class="ingredients">
         <summary>成分細節</summary>
@@ -758,6 +790,10 @@
       </div>
       <p class="product__desc">高濃度加強型胜肽安瓿，適合想額外加強修護、熟齡或近期肌膚狀態需要多一點照顧的人。</p>
       <span class="tag">加強修護・熟齡肌適用</span>
+      <details class="usage">
+        <summary>怎麼用</summary>
+        <p class="usage__body">每次保養都可使用，搭配任何保養品加強效果：取五元硬幣大小的精華或乳霜，加入1–2滴「好好加強胜肽安瓿」混合均勻（可透過B12的桃紅色判斷是否混勻），再塗抹於全臉。</p>
+      </details>
 
       <details class="ingredients">
         <summary>成分細節</summary>
@@ -832,6 +868,10 @@
       </div>
       <p class="product__desc">輕乳霜質地，全效型保養，日常保養最後一道鎖水步驟。</p>
       <span class="tag">混合偏乾肌推薦・油肌建議冬天使用</span>
+      <details class="usage">
+        <summary>怎麼用</summary>
+        <p class="usage__body">每次保養都可使用。早晚洗臉、使用「好好保養精華」後，取適量（油性肌膚約半指節、乾性肌膚約一指節）均勻塗抹於肌膚乾燥處並按摩吸收，亦可搭配「好好加強」達到最佳效果。</p>
+      </details>
 
       <details class="ingredients">
         <summary>成分細節</summary>
@@ -932,6 +972,10 @@
       </div>
       <p class="product__desc">神經醯胺為主要活性成分的護手霜，質地輕盈不黏膩，特別適合手部乾燥、常洗手／消毒導致屏障脆弱的人。</p>
       <span class="tag">手部乾燥・屏障脆弱適用</span>
+      <details class="usage">
+        <summary>怎麼用</summary>
+        <p class="usage__body">清潔手部後，或手部乾燥時，取適量均勻塗抹於手上，吸收後會在手上形成一層清透防水薄膜，有助於避免水分蒸散。</p>
+      </details>
 
       <details class="ingredients">
         <summary>成分細節</summary>
