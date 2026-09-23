@@ -49,8 +49,14 @@
 
   .wrap{ max-width:var(--maxw); margin:0 auto; padding:0 24px; }
 
-  /* ---------- reveal on scroll ---------- */
-  .reveal{ opacity:0; transform:translateY(18px); transition:opacity .8s ease, transform .8s ease; }
+  /* ---------- reveal on scroll ----------
+     Motion itself is driven by a small spring engine in the closing <script> (apple-design §4:
+     critically-damped springs instead of a fixed-duration ease curve). This CSS only defines
+     the hidden/settled endpoints; .visible is applied once the spring's onfinish fires, so CSS
+     just holds the final state afterwards instead of fighting the Web Animations API mid-flight.
+     No CSS `transition` here on purpose — with JS/IntersectionObserver unavailable, .visible
+     is still added directly (see script), so content is never stuck hidden. */
+  .reveal{ opacity:0; transform:translateY(18px); }
   .reveal.visible{ opacity:1; transform:none; }
   @media (prefers-reduced-motion: reduce){
     .reveal{ opacity:1; transform:none; transition:none; }
@@ -110,6 +116,9 @@
   }
   .hero__title{
     font-family:var(--font-serif-cn); font-weight:400; font-size:clamp(22px,4.6vw,32px);
+    /* leading tracks size inversely (apple-design §15): this is a 1–2 line heading, so it
+       shouldn't inherit body's 1.75 paragraph leading — that read as accidentally loose */
+    line-height:1.3;
     letter-spacing:.04em; margin:0 0 16px; color:var(--ink);
   }
   .hero__sub{
@@ -126,7 +135,11 @@
   /* ---------- step nav ---------- */
   .stepnav{
     position:sticky; top:0; z-index:20;
-    background:rgba(247,247,245,.9); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+    /* deeper blur than before (8px→14px) so this reads as a genuine floating material over
+       scrolling content, not a flat bar (apple-design §12: material weight = role). the 1px
+       hairline stays — it's 人也's own divider language used on every section, not an Apple
+       affordance, and removing it here would read as inconsistent with the rest of the page. */
+    background:rgba(247,247,245,.88); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
     border-bottom:1px solid var(--ink-12);
   }
   .stepnav__list{
@@ -137,9 +150,10 @@
   .stepnav__link{
     flex:0 0 auto; text-decoration:none; font-family:var(--font-en); font-size:11px; letter-spacing:.08em;
     color:var(--ink-55); padding:8px 12px; border-radius:999px; white-space:nowrap;
-    transition:color .35s ease, background-color .35s ease;
+    transition:color .35s ease, background-color .35s ease, opacity .1s ease-out;
   }
   .stepnav__link.active{ color:var(--ink); background:var(--ink-06); }
+  .stepnav__link:active{ opacity:.55; transition-duration:.08s; }
 
   @media (min-width:720px){
     .stepnav__list{ justify-content:center; }
@@ -149,9 +163,17 @@
   .product-carousel{ position:relative; overflow:hidden; }
   .product-carousel__track{
     display:flex; width:700%;
-    transition:transform .55s cubic-bezier(.65,0,.35,1), height .4s ease;
-    touch-action:pan-y;
+    /* transform is driven entirely by JS now (drag tracking + spring release, apple-design
+       §2–§6) — no CSS transition on it, or a plain style write mid-drag would get smoothed/
+       delayed instead of following the finger 1:1. `height` keeps its own transition; that's
+       unrelated (see the JS height-sync comment) and still fine to animate via CSS. */
+    transition:height .4s ease;
+    touch-action:pan-y; /* let the browser own vertical page scroll; JS owns horizontal drag */
+    will-change:transform;
+    cursor:grab;
   }
+  .product-carousel__track.is-dragging{ cursor:grabbing; user-select:none; }
+  .product-carousel__track img{ -webkit-user-drag:none; user-drag:none; } /* no native ghost-drag on photos */
   .carousel-arrow{
     display:none; align-items:center; justify-content:center;
     position:absolute; top:50%; transform:translateY(-50%); z-index:5;
@@ -193,6 +215,7 @@
   }
   .product__name{
     font-family:var(--font-serif-cn); font-weight:500; font-size:clamp(21px,3.6vw,27px);
+    line-height:1.35; /* short heading — see hero__title comment on leading vs. size */
     margin:0; letter-spacing:.02em;
   }
   .product__desc{
@@ -222,16 +245,23 @@
   details.ingredients summary{
     cursor:pointer; list-style:none; font-family:var(--font-en); font-size:12px; letter-spacing:.1em;
     color:var(--ink-55); display:inline-flex; align-items:center; gap:8px; padding:4px 0;
-    -webkit-tap-highlight-color:transparent;
+    -webkit-tap-highlight-color:transparent; transition:opacity .1s ease-out;
   }
+  details.ingredients summary:active{ opacity:.55; }
   details.ingredients summary::-webkit-details-marker{ display:none; }
   details.ingredients summary::before{
     content:'+'; display:inline-block; width:14px; text-align:center; transition:transform .3s ease;
   }
   details.ingredients[open] summary::before{ content:'–'; }
+  /* .ingredients__body height is spring-animated on open/close by the script at the bottom of
+     the page (apple-design §4/§14) — this padding/line-height still governs the settled state,
+     and is also what prefers-reduced-motion falls back to (native <details> instant toggle).
+     overflow-anchor:none is belt-and-suspenders against Chrome's scroll-anchoring heuristic
+     reacting to height changing every animation frame — see the JS comment for the (separate,
+     pre-existing, unrelated) native <summary> focus-follow scroll behavior. */
   details.ingredients .ingredients__body{
     font-family:var(--font-sans-cn); font-weight:300; font-size:13.5px; color:var(--ink-55);
-    padding:10px 0 0 22px; line-height:1.9;
+    padding:10px 0 0 22px; line-height:1.9; overflow-anchor:none;
   }
   details.ingredients .ingredient-list{ display:flex; flex-direction:column; }
   details.ingredients .ingredient-item{ padding:14px 0; border-top:1px solid var(--ink-12); }
@@ -257,25 +287,33 @@
   details.usage summary{
     cursor:pointer; list-style:none; font-family:var(--font-en); font-size:12px; letter-spacing:.1em;
     color:var(--ink-55); display:inline-flex; align-items:center; gap:8px; padding:4px 0;
-    -webkit-tap-highlight-color:transparent;
+    -webkit-tap-highlight-color:transparent; transition:opacity .1s ease-out;
   }
+  details.usage summary:active{ opacity:.55; }
   details.usage summary::-webkit-details-marker{ display:none; }
   details.usage summary::before{
     content:'+'; display:inline-block; width:14px; text-align:center;
   }
   details.usage[open] summary::before{ content:'–'; }
+  /* same spring-driven open/close + overflow-anchor treatment as details.ingredients above */
   details.usage .usage__body{
     font-family:var(--font-sans-cn); font-weight:300; font-size:13.5px; line-height:1.9; color:var(--ink-55);
-    padding:10px 0 0 22px; margin:0;
+    padding:10px 0 0 22px; margin:0; overflow-anchor:none;
   }
+  details.usage .usage__panel{ overflow-anchor:none; }
+  details.usage .usage__panel .notice{ margin:14px 0 4px 22px; }
 
   .cta-btn{
     display:inline-flex; align-items:center; gap:10px; text-decoration:none;
     border:1px solid var(--ink); color:var(--ink); font-family:var(--font-en); font-size:13px;
     letter-spacing:.08em; padding:13px 28px; margin-top:4px;
-    transition:background-color .35s ease, color .35s ease;
+    /* transform gets its own fast transition so touch feedback is instant on press
+       (apple-design §1 — respond on pointer-down, not on release) while color/background
+       keep their slower, deliberate .35s so the fill doesn't feel twitchy */
+    transition:background-color .35s ease, color .35s ease, transform .12s ease-out;
   }
   .cta-btn:hover{ background:var(--ink); color:var(--bg-warm); }
+  .cta-btn:active{ transform:scale(.97); transition-duration:.08s; }
   .cta-btn__arrow{ transition:transform .35s ease; }
   .cta-btn:hover .cta-btn__arrow{ transform:translateX(4px); }
 
@@ -286,7 +324,7 @@
   }
   .block-title{
     font-family:var(--font-serif-cn); font-weight:500; font-size:clamp(21px,3.8vw,27px);
-    margin:0 0 16px; letter-spacing:.02em;
+    line-height:1.35; margin:0 0 16px; letter-spacing:.02em;
   }
   .block-intro{
     font-family:var(--font-sans-cn); font-weight:300; font-size:14.5px; color:var(--ink-55);
@@ -308,7 +346,7 @@
   .flow-node__thumb{
     width:78px; height:78px; flex:0 0 auto; border-radius:50%; overflow:hidden;
     background:#f1f0ec; border:1px solid var(--ink-12);
-    transition:border-color .3s ease, box-shadow .3s ease;
+    transition:border-color .3s ease, box-shadow .3s ease, transform .12s ease-out;
   }
   .flow-node__thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
   .flow-node__label{
@@ -317,6 +355,7 @@
   }
   .flow-node:hover .flow-node__label{ border-color:var(--ink); opacity:.6; }
   .flow-node:hover .flow-node__thumb{ border-color:var(--ink); box-shadow:0 0 0 3px var(--ink-06); }
+  .flow-node:active .flow-node__thumb{ transform:scale(.95); border-color:var(--ink); transition-duration:.08s; }
   .flow-node--stacked{ flex-direction:column; text-align:center; gap:12px; }
   .flow-node--stacked .flow-node__thumb{ width:94px; height:94px; }
   .flow-node--stacked .flow-node__label{ max-width:11em; }
@@ -385,7 +424,7 @@
   .combo__col:first-child{ padding-top:0; border-top:none; }
   .combo__type{
     font-family:var(--font-serif-cn); font-weight:500; font-size:clamp(18px,3.2vw,21px);
-    margin:0 0 12px; letter-spacing:.02em;
+    line-height:1.3; margin:0 0 12px; letter-spacing:.02em;
   }
   .combo__desc{
     font-family:var(--font-sans-cn); font-weight:300; font-size:13.5px; color:var(--ink-55);
@@ -447,7 +486,7 @@
   .closing__inner{ max-width:520px; margin:0 auto; }
   .closing__title{
     font-family:var(--font-serif-cn); font-weight:400; font-size:clamp(20px,4vw,26px);
-    margin:0 0 32px;
+    line-height:1.3; margin:0 0 32px;
   }
   .closing__buttons{ display:flex; flex-direction:column; align-items:center; gap:16px; }
   .closing__note{
@@ -714,7 +753,13 @@
       <span class="tag">進階保養・請先建立耐受</span>
       <details class="usage">
         <summary>怎麼用</summary>
-        <p class="usage__body">晚上洗臉後使用。初次使用建議一週一次，肌膚適應後可增加到一週兩次（約3–4天一次），單獨使用不需搭配其他精華或乳液。</p>
+        <div class="usage__panel">
+          <p class="usage__body">晚上洗臉後使用。初次使用建議一週一次，肌膚適應後可增加到一週兩次（約3–4天一次），單獨使用不需搭配其他精華或乳液。</p>
+          <div class="notice">
+            <p class="notice__label">使用提醒</p>
+            <p>第一次使用建議先在耳後或手腕小範圍測試；醫美術後恢復期或肌膚正在發炎時請先不要使用；使用當次請勿疊加其他酸類產品。</p>
+          </div>
+        </div>
       </details>
 
       <details class="ingredients">
@@ -756,11 +801,6 @@
           </ul>
         </div>
       </details>
-
-      <div class="notice">
-        <p class="notice__label">使用提醒</p>
-        <p>第一次使用建議先在耳後或手腕小範圍測試；醫美術後恢復期或肌膚正在發炎時請先不要使用；使用當次請勿疊加其他酸類產品。</p>
-      </div>
 
       <div>
         <a class="cta-btn" href="https://www.to-amorphous.com/toamorphousskincare/index.php?action=product_detail&amp;prod_no=P0082000031575" target="_blank" rel="noopener">前往商城 <span class="cta-btn__arrow">→</span></a>
@@ -834,11 +874,6 @@
           </ul>
         </div>
       </details>
-
-      <div class="notice notice--usage">
-        <p class="notice__label">使用方式</p>
-        <p>一次使用一滴，搭配平常保養混合使用。</p>
-      </div>
 
       <div>
         <a class="cta-btn" href="https://www.to-amorphous.com/toamorphousskincare/index.php?action=product_detail&amp;prod_no=P0082000031574" target="_blank" rel="noopener">前往商城 <span class="cta-btn__arrow">→</span></a>
@@ -1209,48 +1244,243 @@
 
 <script>
 (function(){
-  // scroll reveal
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---------------------------------------------------------------------
+  // Tiny dependency-free spring engine (apple-design §4/§6).
+  // No spring library is loaded for a single-page product site, so this
+  // samples the closed-form critically-/under-damped spring position at a
+  // fixed frame rate and hands the samples to Element.animate() as linear
+  // keyframes — the same technique JS spring libraries use to target the
+  // Web Animations API. `damping` 1.0 = critically damped (no overshoot,
+  // the default apple-design recommends for anything that isn't a flick/
+  // momentum gesture); `response` is seconds-to-settle, not a fixed
+  // duration in the CSS sense — it's just where we stop sampling once the
+  // curve is visually at rest.
+  // ---------------------------------------------------------------------
+  function springSample(t, damping, omega){
+    if(damping >= 1){
+      return 1 - (1 + omega * t) * Math.exp(-omega * t); // critically damped, normalized 0→1
+    }
+    var omegaD = omega * Math.sqrt(1 - damping * damping);
+    var envelope = Math.exp(-damping * omega * t);
+    return 1 - envelope * (Math.cos(omegaD * t) + (damping * omega / omegaD) * Math.sin(omegaD * t));
+  }
+  function springKeyframeValues(from, to, damping, response, steps){
+    var omega = 5 / response; // ~settled (>96%) by t = response
+    var out = [];
+    for(var i = 0; i <= steps; i++){
+      var t = (i / steps) * response;
+      out.push(from + (to - from) * springSample(t, damping, omega));
+    }
+    out[out.length - 1] = to; // force an exact landing — see comment above on the ~96% sample
+    return out;
+  }
+  // Springs two properties (e.g. opacity + translateY, or a height) in lockstep,
+  // reading the element's live on-screen value as the start point (apple-design
+  // §3 — animate from the presentation value, never assume the hidden/target
+  // value, so a re-triggered animation never jumps).
+  function animateSpring(el, props, opts){
+    if(reduceMotion){
+      opts.onDone && opts.onDone();
+      return null;
+    }
+    el.getAnimations().forEach(function(a){ a.cancel(); });
+    var response = opts.response || 0.5;
+    var damping = opts.damping != null ? opts.damping : 1;
+    var steps = opts.steps || 20;
+    var series = {};
+    Object.keys(props).forEach(function(key){
+      series[key] = springKeyframeValues(props[key][0], props[key][1], damping, response, steps);
+    });
+    var keyframes = [];
+    for(var i = 0; i <= steps; i++){
+      var frame = {};
+      Object.keys(series).forEach(function(key){ frame[key] = series[key][i]; });
+      if(opts.toFrame) opts.toFrame(frame, series, i);
+      keyframes.push(frame);
+    }
+    var anim = el.animate(keyframes, { duration: response * 1000, easing: 'linear', fill: 'forwards' });
+    anim.onfinish = function(){ opts.onDone && opts.onDone(); };
+    return anim;
+  }
+
+  // ---------------------------------------------------------------------
+  // scroll reveal — springs opacity + translateY instead of a fixed-duration
+  // ease transition. Critically damped (no bounce): this is content arriving
+  // on scroll, not something the user flicked, so overshoot would read as
+  // noise rather than physicality (apple-design §4 damping defaults).
+  // ---------------------------------------------------------------------
+  function revealNow(el){ el.classList.add('visible'); }
+  function revealSpring(el){
+    if(reduceMotion){ revealNow(el); return; }
+    animateSpring(el, { opacity: [0, 1], y: [18, 0] }, {
+      damping: 1, response: 0.55, steps: 24,
+      toFrame: function(frame){ frame.transform = 'translateY(' + frame.y.toFixed(2) + 'px)'; delete frame.y; },
+      onDone: function(){ revealNow(el); }
+    });
+  }
   var revealEls = document.querySelectorAll('.reveal');
   if('IntersectionObserver' in window){
     var io = new IntersectionObserver(function(entries){
       entries.forEach(function(entry){
         if(entry.isIntersecting){
-          entry.target.classList.add('visible');
+          revealSpring(entry.target);
           io.unobserve(entry.target);
         }
       });
     }, { threshold: 0.15, rootMargin: '0px 0px -60px 0px' });
     revealEls.forEach(function(el){ io.observe(el); });
   } else {
-    revealEls.forEach(function(el){ el.classList.add('visible'); });
+    revealEls.forEach(function(el){ revealNow(el); });
   }
 
-  // product carousel — 7 product sections slide horizontally instead of stacking
+  // ---------------------------------------------------------------------
+  // product carousel — 7 product sections slide horizontally instead of
+  // stacking. Position is driven through one function (goTo → animatePositionTo)
+  // no matter *why* it's changing — a stepnav click, an arrow, the keyboard,
+  // autoplay, or a drag release — so there is exactly one "current position"
+  // for all of them to share and interrupt (apple-design §3: always animate
+  // from the live presentation value, never a stale target).
+  // ---------------------------------------------------------------------
   var track = document.getElementById('productTrack');
   var slides = track ? Array.prototype.slice.call(track.querySelectorAll(':scope > .product')) : [];
   var navLinks = document.querySelectorAll('.stepnav__link');
   var prevBtn = document.querySelector('.carousel-arrow--prev');
   var nextBtn = document.querySelector('.carousel-arrow--next');
   var carousel = document.querySelector('.product-carousel');
+  // exposed so the ingredient/usage disclosure code (further down, same closure) can re-sync
+  // the track's JS-managed pixel height after springing a details panel open/closed inside the
+  // active slide — otherwise the carousel's overflow:hidden clips newly revealed content, since
+  // nothing else resizes the track except a page-change. Untouched/no-op if the carousel never
+  // initializes (defensive, matches the `if` guard below).
+  var syncTrackHeight = function(){};
 
   if(track && slides.length){
     var total = slides.length;
     var index = 0;
+    var slideWidthPx = 0;
+    var posAnim = null; // the WAAPI Animation currently driving track's transform, if any
     var AUTOPLAY_MS = 6000;
     var autoplayTimer = null;
     var autoplayEnabled = true; // turns off for good once the visitor takes control
 
-    function render(){
-      track.style.transform = 'translateX(-' + (index * (100 / total)) + '%)';
-      track.style.height = slides[index].offsetHeight + 'px';
+    function measureSlideWidth(){ slideWidthPx = carousel.getBoundingClientRect().width || 1; }
+    measureSlideWidth();
+
+    // the *true* on-screen translateX right now, read from the computed style rather than
+    // trusted from a variable — every caller (a drag starting, a click landing mid-spring,
+    // a resize) continues from what's actually rendered, never from a stale intended target.
+    function currentPx(){
+      var m = getComputedStyle(track).transform;
+      var match = m && /matrix\(([^)]+)\)/.exec(m);
+      return match ? (parseFloat(match[1].split(',')[4]) || 0) : 0;
+    }
+    function setPx(px){ track.style.transform = 'translateX(' + px + 'px)'; }
+
+    function stopPositionAnim(){
+      if(posAnim){
+        try{ posAnim.commitStyles(); }catch(e){} // freeze the live interpolated value onto the element…
+        posAnim.cancel();                        // …before tearing the animation down, so nothing jumps
+        posAnim = null;
+      }
+    }
+
+    // Height (measured with the flex-stretch/transition workarounds below) + which stepnav
+    // link is active. Independent of the *visual* slide position, and applied immediately when
+    // the logical page changes even while the new slide is still springing into view — matches
+    // how the old CSS-transition version behaved (chrome flips instantly, motion catches up).
+    function syncChrome(){
+      // measuring the active slide's real content height needs the track's own explicit height
+      // released first: .product-carousel__track is a flex row, so with align-items defaulting
+      // to stretch, an already-set track height clamps every slide (including the active one)
+      // to that same height — reading offsetHeight while still clamped just plays back the old
+      // number, so a slide that grew (e.g. a details panel opened) never gets more room and its
+      // extra content sits clipped under .product-carousel{overflow:hidden}. Releasing to 'auto'
+      // for one synchronous read (no paint happens mid-script, so this never flashes) gets the
+      // slide's true natural height before pinning the track back to an explicit pixel value.
+      // Two more things fight that measurement and need suspending too, both restored right
+      // after the read so nothing about the track's real behavior changes:
+      // (1) `align-items: stretch` (flex default) doesn't stop applying just because height is
+      //     'auto' — the row's auto height resolves to the *tallest* item's natural size, then
+      //     EVERY item (including ones with much less content) gets stretched to match it. So
+      //     even with height:auto, reading any one slide's offsetHeight returns the group max,
+      //     not that slide's own size. Switching to `align-items: flex-start` for the read lets
+      //     each slide size to its own content.
+      // (2) the track also has `transition: height .4s ease` of its own (for smoothly animating
+      //     between differently-tall slides on navigation) — that transition intercepts the
+      //     'auto' assignment too, so an immediate offsetHeight read would return the *old*,
+      //     not-yet-transitioned height (t=0 of that transition) instead of the true auto height.
+      // Both are suspended only for this synchronous measure-and-reset round-trip — nothing
+      // paints mid-script, so this is never visible — then restored before the real, visible
+      // height change below, which still animates via the real transition as before.
+      var prevTransition = track.style.transition;
+      var prevAlign = track.style.alignItems;
+      track.style.transition = 'none';
+      track.style.alignItems = 'flex-start';
+      track.style.height = 'auto';
+      var h = slides[index].offsetHeight;
+      track.style.alignItems = prevAlign;
+      track.style.transition = prevTransition;
+      track.style.height = h + 'px';
       navLinks.forEach(function(link){
         link.classList.toggle('active', link.dataset.step === slides[index].id);
       });
     }
+    syncTrackHeight = syncChrome;
 
-    function goTo(i){
-      index = ((i % total) + total) % total; // wraps both directions
-      render();
+    // Numerically integrates a damped spring (semi-implicit Euler) from `from` to `to`, starting
+    // at `initialVelocity` px/s. Unlike the closed-form spring engine used for reveal/disclosure
+    // above (which only ever starts from rest), this composes an arbitrary starting velocity for
+    // free — that's what makes momentum handoff on release (apple-design §5) and re-grabbing the
+    // track mid-flight both just work, without special-casing either one.
+    function simulateSpring(from, to, initialVelocity, damping, response){
+      var omega = 5 / response; // same "response ≈ seconds to settle" meaning used elsewhere in this file
+      var k = omega * omega, c = 2 * damping * omega;
+      var dt = 1 / 120;
+      var pos = from - to, vel = initialVelocity, t = 0;
+      var frames = [from];
+      while(t < 1.2){ // safety cap — a big flick can legitimately take a little longer to settle
+        var acc = -k * pos - c * vel;
+        vel += acc * dt;
+        pos += vel * dt;
+        t += dt;
+        frames.push(pos + to);
+        if(Math.abs(pos) < 0.5 && Math.abs(vel) < 20) break; // settled: <0.5px and <20px/s from rest
+      }
+      frames[frames.length - 1] = to; // land exactly
+      frames.durationMs = t * 1000;
+      return frames;
+    }
+
+    function animatePositionTo(targetIndex, velocityPxPerSec, opts){
+      opts = opts || {};
+      stopPositionAnim();
+      var from = currentPx();
+      var to = -targetIndex * slideWidthPx;
+      if(reduceMotion){ setPx(to); return; } // instant — no spring, no momentum carried through
+      var damping = opts.damping != null ? opts.damping : 1; // 1.0 = critically damped (programmatic nav)
+      var response = opts.response || 0.45;
+      var frames = simulateSpring(from, to, velocityPxPerSec || 0, damping, response);
+      var keyframes = frames.map(function(p){ return { transform: 'translateX(' + p.toFixed(2) + 'px)' }; });
+      posAnim = track.animate(keyframes, { duration: frames.durationMs, easing: 'linear', fill: 'forwards' });
+      posAnim.onfinish = function(){
+        // hand back to a plain inline style once settled, then actually release the finished
+        // Animation object — with fill:'forwards' it would otherwise stay "relevant" forever
+        // (per getAnimations()) even after finishing, and unlike the one-shot reveal/disclosure
+        // springs above, a fresh one of these gets created on every single navigation (including
+        // every autoplay tick), so leaving it uncanceled would accumulate indefinitely.
+        var finished = posAnim;
+        posAnim = null;
+        setPx(to);
+        finished.cancel();
+      };
+    }
+
+    function goTo(i, velocityPxPerSec, opts){
+      index = ((i % total) + total) % total; // wraps — click/keyboard/autoplay navigation still loops
+      syncChrome();
+      animatePositionTo(index, velocityPxPerSec, opts);
     }
 
     function stopAutoplay(){
@@ -1293,21 +1523,100 @@
       carousel.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
 
-    // swipe / drag — works for touch and mouse alike via pointer events
-    var dragStartX = null, dragStartY = null, dragging = false;
+    // ---------------------------------------------------------------------
+    // drag / swipe — 1:1 tracking (apple-design §2), momentum projection +
+    // velocity handoff on release (§5/§6), rubber-banding at the first/last
+    // slide (§9). Direction-locked on a ~10px threshold (§10) so a vertical
+    // page scroll starting on the carousel is never hijacked: until that
+    // lock fires we never call setPointerCapture or preventDefault, so a
+    // plain tap on a link/summary inside a slide still fires its native
+    // click exactly as if none of this existed.
+    // ---------------------------------------------------------------------
+    var DRAG_LOCK_PX = 10;
+    var RUBBERBAND_K = 0.55;      // apple-design §9's own example constant
+    var PROJECTION_DECAY = 0.998; // apple-design §6, "normal scroll feel"
+
+    function rubberband(overshoot, dimension){
+      var sign = overshoot < 0 ? -1 : 1, o = Math.abs(overshoot);
+      return sign * (o * dimension * RUBBERBAND_K) / (dimension + RUBBERBAND_K * o);
+    }
+    function project(velocity){ return (velocity / 1000) * PROJECTION_DECAY / (1 - PROJECTION_DECAY); }
+
+    var gesture = null; // null | { phase:'pending'|'horizontal', pointerId, startX, startY, startPx, startIndex, history }
+
     track.addEventListener('pointerdown', function(e){
-      dragStartX = e.clientX; dragStartY = e.clientY; dragging = true;
+      if(e.pointerType === 'mouse' && e.button !== 0) return; // ignore right/middle-click drags
+      stopAutoplayForGood(); // the moment a visitor touches the carousel, autoplay is done for good
+      stopPositionAnim();    // grabbing mid-spring freezes it exactly where it visually is right now
+      gesture = {
+        phase: 'pending',
+        pointerId: e.pointerId,
+        startX: e.clientX, startY: e.clientY,
+        startPx: currentPx(),
+        startIndex: index,
+        history: [{ t: e.timeStamp, x: e.clientX }]
+      };
     });
-    track.addEventListener('pointerup', function(e){
-      if(!dragging) return;
-      dragging = false;
-      var dx = e.clientX - dragStartX, dy = e.clientY - dragStartY;
-      if(Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy)){
-        stopAutoplayForGood();
-        goTo(index + (dx < 0 ? 1 : -1));
+
+    track.addEventListener('pointermove', function(e){
+      if(!gesture || e.pointerId !== gesture.pointerId) return;
+      var dx = e.clientX - gesture.startX, dy = e.clientY - gesture.startY;
+
+      if(gesture.phase === 'pending'){
+        if(Math.abs(dx) < DRAG_LOCK_PX && Math.abs(dy) < DRAG_LOCK_PX) return; // still ambiguous
+        if(Math.abs(dx) > Math.abs(dy)){
+          gesture.phase = 'horizontal';
+          track.setPointerCapture(gesture.pointerId);
+          track.classList.add('is-dragging');
+        } else {
+          gesture = null; // vertical intent — hand off to native scroll (touch-action:pan-y)
+          return;
+        }
       }
+
+      e.preventDefault(); // we own this axis now
+      gesture.history.push({ t: e.timeStamp, x: e.clientX });
+      if(gesture.history.length > 6) gesture.history.shift(); // only need a short recent window for velocity
+
+      var raw = gesture.startPx + dx;
+      var minPx = -(total - 1) * slideWidthPx, maxPx = 0;
+      var px = raw > maxPx ? maxPx + rubberband(raw - maxPx, slideWidthPx)
+             : raw < minPx ? minPx + rubberband(raw - minPx, slideWidthPx)
+             : raw;
+      setPx(px); // 1:1 with the pointer (or rubber-banded past an edge) — no easing, no delay
     });
-    track.addEventListener('pointercancel', function(){ dragging = false; });
+
+    function endGesture(e){
+      if(!gesture || e.pointerId !== gesture.pointerId) return;
+      var g = gesture; gesture = null;
+      track.classList.remove('is-dragging');
+      if(g.phase !== 'horizontal') return; // a tap, or a vertical scroll already handed off
+
+      try{ track.releasePointerCapture(g.pointerId); }catch(err){}
+
+      // velocity from the recent position history (apple-design §2: not just the release point)
+      var hist = g.history, newest = hist[hist.length - 1], oldest = hist[0];
+      for(var i = hist.length - 1; i >= 0; i--){
+        if(newest.t - hist[i].t <= 100) oldest = hist[i]; else break;
+      }
+      var dt = (newest.t - oldest.t) / 1000;
+      var velocity = dt > 0 ? (newest.x - oldest.x) / dt : 0; // px/s
+
+      // project where the gesture is *going* (§6), not just where it let go — this is also what
+      // makes a slow drag past the halfway point turn the page even at ~0 velocity: projecting a
+      // ~0 velocity barely moves the target, so Math.round() just snaps to whichever slide the
+      // drag already ended up closer to.
+      var projected = currentPx() + project(velocity);
+      var rawTarget = Math.round(-projected / slideWidthPx);
+      var targetIndex = Math.max(g.startIndex - 1, Math.min(g.startIndex + 1, rawTarget)); // cap: 1 page/release
+      targetIndex = Math.max(0, Math.min(total - 1, targetIndex)); // no wrap on drag — rubber-band owns the edge
+
+      // a touch of bounce (not critically damped) — this gesture carried real momentum, unlike a
+      // plain stepnav click, so apple-design §4's overshoot-only-on-momentum default applies here.
+      goTo(targetIndex, velocity, { damping: 0.82, response: 0.38 });
+    }
+    track.addEventListener('pointerup', endGesture);
+    track.addEventListener('pointercancel', endGesture);
 
     // keyboard
     carousel.setAttribute('tabindex', '0');
@@ -1328,10 +1637,80 @@
       if(document.hidden){ stopAutoplay(); } else { startAutoplay(); }
     });
 
-    window.addEventListener('resize', render);
-    render();
+    window.addEventListener('resize', function(){
+      measureSlideWidth();
+      stopPositionAnim();
+      setPx(-index * slideWidthPx); // snap — a mid-resize spring isn't worth chasing a moving target
+      syncChrome();
+    });
+
+    syncChrome();
+    setPx(0); // initial position, instant — nothing to animate from on first paint
     startAutoplay();
   }
+
+  // ---------------------------------------------------------------------
+  // "怎麼用" / "成分細節" disclosure — springs the height open/closed instead
+  // of the browser's instant native <details> toggle (apple-design §4 + §14:
+  // this is a direct, tappable UI element, so it earns a spring; reduced-
+  // motion users get the plain native instant toggle, which is already
+  // accessible). Works for both details.usage and details.ingredients — the
+  // body is just "whatever element follows <summary>", so it doesn't care
+  // which of the two content shapes (a <p> vs. a richer ingredient list) is
+  // inside.
+  //
+  // syncTrackHeight() (= the carousel's render(), see above) is called right
+  // after opening and again once each animation settles, so the carousel's
+  // JS-managed track height grows/shrinks in step with the disclosure —
+  // without it, opening a panel inside the active slide would either get
+  // clipped by .product-carousel{overflow:hidden} (a hard cut mid-reveal)
+  // or leave a blank gap under a collapsed panel until the next navigation.
+  // ---------------------------------------------------------------------
+  document.querySelectorAll('details.ingredients, details.usage').forEach(function(details){
+    var summary = details.querySelector(':scope > summary');
+    var body = summary && summary.nextElementSibling;
+    if(!summary || !body || reduceMotion) return; // native <details> behavior is the reduced-motion fallback
+    var animating = false;
+    summary.addEventListener('click', function(e){
+      if(animating) return; // let an in-flight open/close finish before accepting a new toggle
+      e.preventDefault();
+      if(details.open){
+        var startH = body.getBoundingClientRect().height;
+        body.style.overflow = 'hidden';
+        animating = true;
+        animateSpring(body, { h: [startH, 0] }, {
+          damping: 1, response: 0.32, steps: 16,
+          toFrame: function(frame, series, i){ frame.height = series.h[i].toFixed(2) + 'px'; delete frame.h; },
+          onDone: function(){
+            details.open = false;
+            body.style.overflow = '';
+            body.style.height = '';
+            animating = false;
+            syncTrackHeight(); // panel is gone — let the track shrink back down
+          }
+        });
+      } else {
+        details.open = true;
+        syncTrackHeight(); // grow the track first so the reveal below isn't clipped mid-flight
+        requestAnimationFrame(function(){
+          var endH = body.getBoundingClientRect().height;
+          body.style.overflow = 'hidden';
+          body.style.height = '0px';
+          animating = true;
+          animateSpring(body, { h: [0, endH] }, {
+            damping: 1, response: 0.38, steps: 18,
+            toFrame: function(frame, series, i){ frame.height = series.h[i].toFixed(2) + 'px'; delete frame.h; },
+            onDone: function(){
+              body.style.overflow = '';
+              body.style.height = '';
+              animating = false;
+              syncTrackHeight(); // settle to the exact final height, correcting any drift
+            }
+          });
+        });
+      }
+    });
+  });
 })();
 </script>
 
