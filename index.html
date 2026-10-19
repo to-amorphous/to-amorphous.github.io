@@ -1891,10 +1891,13 @@
         var startH = body.getBoundingClientRect().height;
         body.style.overflow = 'hidden';
         animating = true;
-        animateSpring(body, { h: [startH, 0] }, {
+        var closeAnim = animateSpring(body, { h: [startH, 0] }, {
           damping: 1, response: 0.32, steps: 16,
           toFrame: function(frame, series, i){ frame.height = series.h[i].toFixed(2) + 'px'; delete frame.h; },
           onDone: function(){
+            // animateSpring uses fill:'forwards', which keeps the last keyframe's height pinned
+            // after the inline style is cleared — cancel it so the body returns to its natural height
+            if(closeAnim) closeAnim.cancel();
             details.open = false;
             body.style.overflow = '';
             body.style.height = '';
@@ -1910,10 +1913,13 @@
           body.style.overflow = 'hidden';
           body.style.height = '0px';
           animating = true;
-          animateSpring(body, { h: [0, endH] }, {
+          var openAnim = animateSpring(body, { h: [0, endH] }, {
             damping: 1, response: 0.38, steps: 18,
             toFrame: function(frame, series, i){ frame.height = series.h[i].toFixed(2) + 'px'; delete frame.h; },
             onDone: function(){
+              // drop the fill:'forwards' hold — otherwise the height measured at open time stays pinned,
+              // and later reflow (webfont load, window resize) spills the text over the next row
+              if(openAnim) openAnim.cancel();
               body.style.overflow = '';
               body.style.height = '';
               animating = false;
