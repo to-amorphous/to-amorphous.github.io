@@ -1714,6 +1714,9 @@
         stopAutoplayForGood();
         var i = slides.findIndex(function(s){ return s.id === link.dataset.step; });
         if(i > -1) goTo(i);
+        // the nav is sticky, so it can be clicked while the page is scrolled well past the
+        // carousel — bring the carousel back into view so the jumped-to product is visible
+        if(carousel.getBoundingClientRect().top < 0) carousel.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
     });
 
