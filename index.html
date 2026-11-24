@@ -202,12 +202,20 @@
   }
   .product:nth-of-type(even){ background:var(--bg-cool); }
   .product__inner{ max-width:var(--maxw); margin:0 auto; }
+  .product{ position:relative; overflow:hidden; }
+  /* photo sits behind the content, full-bleed, no frame; its edge dissolves into the section colour */
   .product__media{
-    width:100%; max-width:260px; aspect-ratio:1/1; overflow:hidden;
-    background:#f1f0ec; border:1px solid var(--ink-12); margin:0 0 32px;
+    position:relative; z-index:-1; overflow:hidden; aspect-ratio:4/3;
+    width:calc(100% + 48px); margin:-96px -24px -8px;
+    -webkit-mask-image:linear-gradient(to bottom, black 55%, transparent);
+            mask-image:linear-gradient(to bottom, black 55%, transparent);
   }
+  .product__inner{ position:relative; z-index:1; }
+  /* white-on-white packshots: keep the label art in the solid part of the photo */
+  #step-02{ --fade:75%; }
+  #step-02 .product__media img{ filter:contrast(1.12) saturate(1.15); }
   .product__media img{ width:100%; height:100%; object-fit:cover; display:block; }
-  .product__cta{ margin:-16px 0 32px; }
+  .product__cta{ margin:0 0 32px; }
   .product__head{ display:flex; align-items:flex-start; gap:20px; margin-bottom:28px; }
   .product__icon{ width:40px; height:40px; flex:0 0 auto; color:var(--ink); opacity:.85; }
   .product__icon svg{ width:100%; height:100%; }
@@ -522,10 +530,14 @@
   @media (min-width:720px){
     .product__head{ gap:28px; }
     .product__icon{ width:48px; height:48px; }
-    .product__inner{ display:grid; grid-template-columns:240px 1fr; gap:0 48px; grid-template-rows:auto 1fr; align-items:start; }
-    .product__media{ max-width:none; margin-bottom:0; grid-column:1; grid-row:1; }
-    .product__cta{ grid-column:1; grid-row:2; margin:16px 0 0; }
-    .product__content{ grid-column:2; grid-row:1 / span 2; }
+    .product__inner{ max-width:none; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:0 48px; align-items:start; }
+    .product__media{
+      position:absolute; top:-96px; bottom:-96px; left:-24px; width:calc((100% + 48px) * .52); height:auto; aspect-ratio:auto; margin:0;
+      -webkit-mask-image:linear-gradient(to right, black var(--fade,35%), transparent);
+              mask-image:linear-gradient(to right, black var(--fade,35%), transparent);
+    }
+    .product__content{ grid-column:2; grid-row:1; max-width:var(--maxw); }
+    .product__cta{ grid-column:2; grid-row:2; margin:8px 0 0; }
   }
 </style>
 </head>
