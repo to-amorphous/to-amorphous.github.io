@@ -2,6 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
+<script>document.documentElement.classList.add('js')</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>好好保養系列｜人也工作室</title>
 <meta name="description" content="人也工作室 好好保養系列——依卸妝、洗臉、去角質、精華、安瓿、全效霜、防曬、護手霜的保養步驟順序，介紹 8 支保養品。">
@@ -56,10 +57,11 @@
      just holds the final state afterwards instead of fighting the Web Animations API mid-flight.
      No CSS `transition` here on purpose — with JS/IntersectionObserver unavailable, .visible
      is still added directly (see script), so content is never stuck hidden. */
-  .reveal{ opacity:0; transform:translateY(18px); }
-  .reveal.visible{ opacity:1; transform:none; }
+  .js .reveal{ opacity:0; transform:translateY(18px); }
+  .js .reveal.visible{ opacity:1; transform:none; }
+  :focus-visible{ outline:1px solid color-mix(in srgb, currentColor 45%, transparent); outline-offset:3px; }
   @media (prefers-reduced-motion: reduce){
-    .reveal{ opacity:1; transform:none; transition:none; }
+    .js .reveal{ opacity:1; transform:none; transition:none; }
     html{ scroll-behavior:auto; }
     #hero-logo-mark .hero-draw, .hero-glint{ animation:none !important; }
     #hero-logo-char-ren-s0, #hero-logo-char-ren-s1,
@@ -69,7 +71,7 @@
 
   /* ---------- hero ---------- */
   .hero{
-    min-height:100svh; min-height:100vh;
+    min-height:100vh; min-height:100svh;
     display:flex; flex-direction:column; align-items:center; justify-content:center;
     text-align:center; padding:64px 24px 48px;
   }
