@@ -325,6 +325,16 @@
   }
   .cta-btn:hover{ background:var(--ink); color:var(--bg-warm); }
   .cta-btn:active{ transform:scale(.97); transition-duration:.08s; }
+  .safety-btn{ display:inline-flex; align-items:center; gap:8px; margin:0 0 20px; padding:10px 22px; border:1px solid var(--ink); font-family:var(--font-sans-cn); font-size:13.5px; letter-spacing:.04em; color:var(--ink); text-decoration:none; transition:background .3s ease,color .3s ease,transform .1s; }
+  .safety-btn:hover{ background:var(--ink); color:var(--bg-warm); }
+  .safety-btn:hover .cta-btn__arrow{ transform:translateX(4px); }
+  .safety-btn:active{ transform:scale(.97); }
+  button.safety-btn{ background:transparent; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+  .safety-dialog{ border:0; padding:0; background:#e9e6e1; width:min(480px,94vw); height:min(88vh,660px); max-width:none; max-height:none; overflow:hidden; position:fixed; inset:0; margin:auto; box-shadow:0 20px 60px rgba(0,0,0,.35); }
+  .safety-dialog::backdrop{ background:rgba(20,18,16,.62); }
+  .safety-dialog iframe{ display:block; width:100%; height:100%; border:0; }
+  .safety-dialog__close{ position:absolute; top:8px; right:8px; z-index:2; width:36px; height:36px; border:0; border-radius:50%; background:rgba(44,43,41,.75); color:#fff; font-size:20px; line-height:1; cursor:pointer; }
+  .safety-dialog__close:hover{ background:#2C2B29; }
   .cta-btn__arrow{ transition:transform .35s ease; }
   .cta-btn:hover .cta-btn__arrow{ transform:translateX(4px); }
 
@@ -1112,6 +1122,7 @@
       </div>
       <p class="product__desc">以二氧化鈦與氧化鋅為防曬原料的全物理防曬乳，SPF50+/PA++++，質地輕盈不黏膩，一抹均勻不死白。</p>
       <span class="tag">物理性防曬・清爽不死白</span>
+      <button type="button" class="safety-btn" data-safety-open aria-haspopup="dialog">物理防曬安全嗎 <span class="cta-btn__arrow">→</span></button>
       <details class="usage">
         <summary>怎麼用</summary>
         <p class="usage__body">保養最後一步，外出前取適量均勻塗抹於臉部與頸部；長時間待在戶外、大量出汗或下水後，請再次補擦。</p>
@@ -1947,5 +1958,20 @@
 })();
 </script>
 
+<dialog class="safety-dialog" id="safety-dialog" aria-label="物理防曬安全嗎">
+  <button type="button" class="safety-dialog__close" data-safety-close aria-label="關閉">×</button>
+  <iframe title="物理防曬安全嗎" data-src="physical-sunscreen-safety.html" loading="lazy"></iframe>
+</dialog>
+<script>
+(function(){
+  var d=document.getElementById('safety-dialog'); if(!d||!d.showModal) return;
+  var f=d.querySelector('iframe');
+  document.addEventListener('click',function(e){
+    if(e.target.closest('[data-safety-open]')){ f.src=f.dataset.src; d.showModal(); }
+    else if(e.target.closest('[data-safety-close]')||e.target===d){ d.close(); }
+  });
+  d.addEventListener('close',function(){ f.src='about:blank'; });
+})();
+</script>
 </body>
 </html>
